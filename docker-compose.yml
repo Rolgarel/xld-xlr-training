@@ -1,5 +1,39 @@
 services:
 
+  jenkins:
+    image: jenkins/jenkins:lts-jdk21
+    container_name: jenkins
+    hostname: jenkins
+
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+
+    volumes:
+      - jenkins-data:/var/jenkins_home
+
+    networks:
+      - xld-xlr
+
+    restart: unless-stopped
+
+
+  registry:
+    image: registry:3
+    container_name: registry
+    hostname: registry
+
+    ports:
+      - "5000:5000"
+
+    volumes:
+      - registry-data:/var/lib/registry
+
+    networks:
+      - xld-xlr
+
+    restart: unless-stopped
+
   xld:
     image: xebialabs/xl-deploy:26.3
     container_name: xld
@@ -106,6 +140,12 @@ services:
 
 
 volumes:
+
+  jenkins-data:
+    name: jenkins-data
+
+  registry-data:
+    name: registry-data
 
   xld-data:
     name: xld-data
