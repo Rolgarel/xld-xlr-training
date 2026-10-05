@@ -49,6 +49,9 @@ xld-xlr-project/
 │   ├── pom.xml
 │   └── src/
 │
+├── ci/
+│   └── Jenkinsfile
+│
 ├── infrastructure/
 │   └── docker/
 │       ├── xld/
@@ -104,21 +107,82 @@ hello-xld-xlr:1.0.0
 Docker Compose provides the local platform:
 
 ```text
-┌─────────────────────────────────────┐
-│              Docker                 │
-│                                     │
-│   ┌─────────┐      ┌─────────┐      │
-│   │   XLD   │◄─────│   XLR   │      │
-│   └────┬────┘      └─────────┘      │
-│        │                            │
-│        ├── Application DEV          │
-│        ├── Application TEST         │
-│        └── Application PROD         │
-│                                     │
-└─────────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│                   Docker                     │
+│                                              │
+│  ┌──────────┐   ┌──────────┐   ┌──────────┐  │
+│  │ Jenkins  │   │ Registry │   │   XLR    │  │
+│  └──────────┘   └──────────┘   └────┬─────┘  │
+│                                     │        │
+│                                ┌────▼─────┐  │
+│                                │    XLD   │  │
+│                                └────┬─────┘  │
+│                                     │        │
+│                         Deployment targets   │
+│                          DEV / TEST / PROD   │
+│                                              │
+└──────────────────────────────────────────────┘
+
 ```
 
 XLD and XLR are provided by their respective Digital.ai Docker images.
+
+## CI Pipeline
+
+Jenkins is responsible for producing the deployable application artifact.
+
+The CI pipeline follows this process:
+
+```text
+Checkout
+   │
+   ▼
+Build
+   │
+   ▼
+Test
+   │
+   ▼
+Docker Build
+   │
+   ▼
+Docker Push
+   │
+   ▼
+Local Registry
+```
+Jenkins does not perform application deployments.
+
+Deployment and release management are handled by XLD and XLR.
+
+## Artifact Management
+
+Application images are stored in the local Docker Registry.
+
+Example:
+
+```text
+localhost:5000/hello-xld-xlr:1.0.0
+```
+
+The same image is promoted across environments:
+
+```text
+                 Registry
+                    │
+                    │ 1.0.0
+                    ▼
+                   XLR
+                    │
+                    ▼
+                   XLD
+                    │
+          ┌─────────┼─────────┐
+          ▼         ▼         ▼
+         DEV       TEST      PROD
+```
+
+The application is built once and deployed multiple times.
 
 ## Versioning
 
@@ -167,18 +231,13 @@ Environment-specific configuration is handled by XLD rather than duplicated in t
 The local services are exposed through Docker:
 
 ```text
-XLD         http://localhost:4516
-XLR         http://localhost:5516
-
-Application DEV
-            http://localhost:8081
-
-Application TEST
-            http://localhost:8082
-
-Application PROD
-            http://localhost:8083
+Jenkins       http://localhost:8080
+Registry      http://localhost:5000
+XLD           http://localhost:4516
+XLR           http://localhost:5516
 ```
+
+Application endpoints are exposed only when an application instance is deployed by XLD.
 
 ## Start the Project
 
@@ -211,6 +270,10 @@ docker compose down -v
 The project aims to progressively implement:
 
 - Application build and packaging
+
+- Jenkins CI pipeline
+
+- Local Docker Registry
 
 - XLD application deployment
 
