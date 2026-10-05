@@ -1,0 +1,75 @@
+pipeline {
+
+    agent any
+
+    environment {
+        REGISTRY = 'localhost:5000'
+        IMAGE_NAME = 'hello-xld-xlr'
+    }
+
+    options {
+        disableConcurrentBuilds()
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Test') {
+            steps {
+                dir('application') {
+                    sh './mvnw test'
+                }
+            }
+        }
+
+        stage('Get Version') {
+            steps {
+                script {
+                    env.APP_VERSION = sh(
+                        script: '''
+                            cd application
+                            ./mvnw help:evaluate \
+                            -Dexpression=project.version \
+                            -q \
+                            -DforceStdout
+                        ''',
+                        returnStdout: true
+                    ).trim()
+
+                    env.IMAGE = "${REGISTRY}/${IMAGE_NAME}:${APP_VERSION}"
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t ${IMAGE} ./application'
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                sh 'docker push ${IMAGE}'
+            }
+        }
+
+    }
+
+    post {
+
+        success {
+            echo "Build successful: ${IMAGE}"
+        }
+
+        failure {
+            echo "Build failed"
+        }
+
+    }
+
+}
