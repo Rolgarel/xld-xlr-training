@@ -17,7 +17,7 @@
 
     <groupId>com.example</groupId>
     <artifactId>hello-xld-xlr</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
 
     <name>hello-xld-xlr</name>
     <description>Application used for XLD/XLR project</description>
