@@ -1,0 +1,121 @@
+services:
+
+  xld:
+    image: xebialabs/xl-deploy:26.3
+    container_name: xld
+    hostname: xld
+
+    ports:
+      - "4516:4516"
+
+    environment:
+      ADMIN_PASSWORD: ${XLD_ADMIN_PASSWORD}
+      ACCEPT_EULA: "Y"
+
+    volumes:
+      - xld-data:/opt/xebialabs/xl-deploy-server
+
+    networks:
+      - xld-xlr
+
+    restart: unless-stopped
+
+
+  xlr:
+    image: xebialabs/xl-release:26.3
+    container_name: xlr
+    hostname: xlr
+
+    ports:
+      - "5516:5516"
+
+    environment:
+      ADMIN_PASSWORD: ${XLR_ADMIN_PASSWORD}
+      ACCEPT_EULA: "Y"
+
+    volumes:
+      - xlr-data:/opt/xebialabs/xl-release-server
+
+    networks:
+      - xld-xlr
+
+    depends_on:
+      - xld
+
+    restart: unless-stopped
+
+
+  app-dev:
+    build:
+      context: ./application
+      dockerfile: Dockerfile
+
+    container_name: app-dev
+    hostname: app-dev
+
+    environment:
+      APP_ENVIRONMENT: DEV
+
+    ports:
+      - "8081:8080"
+
+    networks:
+      - xld-xlr
+
+    restart: unless-stopped
+
+
+  app-test:
+    build:
+      context: ./application
+      dockerfile: Dockerfile
+
+    container_name: app-test
+    hostname: app-test
+
+    environment:
+      APP_ENVIRONMENT: TEST
+
+    ports:
+      - "8082:8080"
+
+    networks:
+      - xld-xlr
+
+    restart: unless-stopped
+
+
+  app-prod:
+    build:
+      context: ./application
+      dockerfile: Dockerfile
+
+    container_name: app-prod
+    hostname: app-prod
+
+    environment:
+      APP_ENVIRONMENT: PROD
+
+    ports:
+      - "8083:8080"
+
+    networks:
+      - xld-xlr
+
+    restart: unless-stopped
+
+
+volumes:
+
+  xld-data:
+    name: xld-data
+
+  xlr-data:
+    name: xlr-data
+
+
+networks:
+
+  xld-xlr:
+    name: xld-xlr
+    driver: bridge
