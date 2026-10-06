@@ -22,7 +22,9 @@ RUN set -eux; \
     rm -rf /tmp/company-certs
 
 RUN apt-get update \
-    && apt-get install -y maven \
+    && apt-get install -y \
+        maven \
+        docker.io \
     && rm -rf /var/lib/apt/lists/*
 
 USER jenkins
