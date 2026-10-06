@@ -22,7 +22,7 @@ pipeline {
         stage('Test') {
             steps {
                 dir('application') {
-                    sh './mvnw test'
+                    sh 'mvn test'
                 }
             }
         }
@@ -33,7 +33,7 @@ pipeline {
                     env.APP_VERSION = sh(
                         script: '''
                             cd application
-                            ./mvnw help:evaluate \
+                            mvn help:evaluate \
                             -Dexpression=project.version \
                             -q \
                             -DforceStdout
