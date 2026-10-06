@@ -2,6 +2,7 @@ package com.example.helloxldxlr;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -17,6 +18,9 @@ class ApplicationControllerTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    @Value("${app.version}")
+    private String version;
+
     @Test
     void shouldReturnApplicationInformation() {
 
@@ -26,7 +30,7 @@ class ApplicationControllerTest {
         );
 
         assertThat(response).contains("hello-xld-xlr");
-        assertThat(response).contains("1.0.0");
+        assertThat(response).contains(version);
     }
 
     @Test
