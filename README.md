@@ -9,25 +9,39 @@ The entire stack runs locally with Docker.
 Git
  │
  ▼
-Build & Test
+Jenkins CI
  │
- ▼
-Application Artifact
+ ├── Maven Test
  │
- ▼
-XLR
+ ├── Get Application Version
  │
- ▼
-XLD
+ ├── Docker Build
  │
- ├── DEV
- ├── TEST
- └── PROD
+ └── Docker Push
+        │
+        ▼
+   Local Registry
+        │
+        ▼
+       XLR
+        │
+        ▼
+       XLD
+        │
+        ├── DEV
+        ├── TEST
+        └── PROD
 ```
 
 - Git — source code and versioning
 
-- CI — build and test the application
+- Jenkins — CI pipeline
+
+- Maven — application testing and version management
+
+- Docker — application image build
+
+- Registry — local Docker image storage
 
 - XLR — orchestrates releases and promotions
 
@@ -52,10 +66,18 @@ xld-xlr-project/
 ├── ci/
 │   └── Jenkinsfile
 │
-├── infrastructure/
-│   └── docker/
-│       ├── xld/
-│       └── xlr/
+├── docker/
+│   ├── jenkins/
+│   │   ├── Dockerfile
+│   │   └── certs/
+│   │
+│   ├── xld/
+│   │   ├── Dockerfile
+│   │   └── certs/
+│   │
+│   └── xlr/
+│       ├── Dockerfile
+│       └── certs/
 │
 ├── deploy/
 │   └── xld/
@@ -107,22 +129,48 @@ hello-xld-xlr:1.0.0
 Docker Compose provides the local platform:
 
 ```text
-┌──────────────────────────────────────────────┐
-│                   Docker                     │
-│                                              │
-│  ┌──────────┐   ┌──────────┐   ┌──────────┐  │
-│  │ Jenkins  │   │ Registry │   │   XLR    │  │
-│  └──────────┘   └──────────┘   └────┬─────┘  │
-│                                     │        │
-│                                ┌────▼─────┐  │
-│                                │    XLD   │  │
-│                                └────┬─────┘  │
-│                                     │        │
-│                         Deployment targets   │
-│                          DEV / TEST / PROD   │
-│                                              │
-└──────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│                           Docker                              │
+│                                                               │
+│  ┌────────────────┐                                           │
+│  │    Jenkins     │                                           │
+│  │    :8080       │                                           │
+│  │                │                                           │
+│  │  JDK 21        │                                           │
+│  │  Maven         │                                           │
+│  │  Docker CLI    │                                           │
+│  └───────┬────────┘                                           │
+│          │                                                    │
+│          │ Docker Socket                                      │
+│          ▼                                                    │
+│     Docker Engine                                             │
+│          │                                                    │
+│          ├──────────────────────┐                             │
+│          │                      │                             │
+│          ▼                      ▼                             │
+│  ┌──────────────┐       ┌──────────────┐                      │
+│  │   Registry   │       │     XLR      │                      │
+│  │    :5000     │       │    :5516     │                      │
+│  └──────────────┘       └──────┬───────┘                      │
+│                                 │                             │
+│                                 ▼                             │
+│                         ┌──────────────┐                      │
+│                         │     XLD      │                      │
+│                         │    :4516     │                      │
+│                         └──────┬───────┘                      │
+│                                │                              │
+│                       Deployment targets                      │
+│                         DEV / TEST / PROD                     │
+│                                                               │
+│                    Docker network: xld-xlr                    │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
+```
 
+All services are connected to the same Docker bridge network:
+
+```text
+xld-xlr
 ```
 
 XLD and XLR are provided by their respective Digital.ai Docker images.
@@ -186,22 +234,14 @@ The application is built once and deployed multiple times.
 
 ## Versioning
 
-Application versions are managed through Git branches and tags.
+Application versions are managed through Git tags.
 
 Examples:
 
 ```text
-main
-release/1.0
-release/2.0
-```
-
-Version tags identify deployable application versions:
-
-```text
-v1.0.0
-v1.1.0
-v2.0.0
+1.0.0
+1.1.0
+2.0.0
 ```
 
 Application code, XLD configuration and XLR configuration are versioned together.
