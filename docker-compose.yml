@@ -56,6 +56,10 @@ services:
 
     volumes:
       - xld-data:/opt/xebialabs/xl-deploy-server
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    group_add:
+    - "990"
 
     networks:
       - xld-xlr
@@ -79,6 +83,10 @@ services:
 
     volumes:
       - xlr-data:/opt/xebialabs/xl-release-server
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    group_add:
+    - "990"
 
     networks:
       - xld-xlr
@@ -87,66 +95,6 @@ services:
       - xld
 
     restart: unless-stopped
-
-
-  # app-dev:
-  #   build:
-  #     context: ./application
-  #     dockerfile: Dockerfile
-
-  #   container_name: app-dev
-  #   hostname: app-dev
-
-  #   environment:
-  #     APP_ENVIRONMENT: DEV
-
-  #   ports:
-  #     - "8081:8080"
-
-  #   networks:
-  #     - xld-xlr
-
-  #   restart: unless-stopped
-
-
-  # app-test:
-  #   build:
-  #     context: ./application
-  #     dockerfile: Dockerfile
-
-  #   container_name: app-test
-  #   hostname: app-test
-
-  #   environment:
-  #     APP_ENVIRONMENT: TEST
-
-  #   ports:
-  #     - "8082:8080"
-
-  #   networks:
-  #     - xld-xlr
-
-  #   restart: unless-stopped
-
-
-  # app-prod:
-  #   build:
-  #     context: ./application
-  #     dockerfile: Dockerfile
-
-  #   container_name: app-prod
-  #   hostname: app-prod
-
-  #   environment:
-  #     APP_ENVIRONMENT: PROD
-
-  #   ports:
-  #     - "8083:8080"
-
-  #   networks:
-  #     - xld-xlr
-
-  #   restart: unless-stopped
 
 
 volumes:
