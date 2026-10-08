@@ -96,6 +96,19 @@ services:
 
     restart: unless-stopped
 
+  release-runner:
+    image: xebialabs/release-runner:26.3
+    environment:
+      RELEASE_RUNNER_RELEASE_URL: http://xlr:5516
+      RELEASE_RUNNER_TOKEN: ${RELEASE_RUNNER_TOKEN}
+      RELEASE_RUNNER_PROFILE: docker
+      RELEASE_RUNNER_DOCKER_RUN_ON_SAME_NETWORK: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp:/tmp
+    networks:
+      - xld-xlr
+
   docker-proxy:
     image: tecnativa/docker-socket-proxy:v0.4.2
     container_name: docker-proxy
