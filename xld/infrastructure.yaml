@@ -1,0 +1,21 @@
+---
+apiVersion: xl-deploy/v1
+kind: Infrastructure
+spec:
+- directory: Infrastructure/Infrastructure
+  children:
+  - name: test-docker-host
+    type: docker.Engine
+    dockerHost: http://docker-proxy:2375
+    registries:
+    - Configuration/Configuration/Registry
+  - name: prod-docker-host
+    type: docker.Engine
+    dockerHost: http://docker-proxy:2375
+    registries:
+    - Configuration/Configuration/Registry
+  - name: dev-docker-host
+    type: docker.Engine
+    dockerHost: http://docker-proxy:2375
+    registries:
+    - Configuration/Configuration/Registry

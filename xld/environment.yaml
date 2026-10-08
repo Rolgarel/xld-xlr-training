@@ -1,0 +1,39 @@
+---
+apiVersion: xl-deploy/v1
+kind: Environments
+spec:
+- directory: Environments/Environments
+  children:
+  - name: dev-dict
+    type: udm.Dictionary
+    entries:
+      ENVIRONMENT: DEV
+      HOST_PORT: "8081"
+  - name: Test
+    type: udm.Environment
+    members:
+    - Infrastructure/Infrastructure/test-docker-host
+    dictionaries:
+    - Environments/Environments/test-dict
+  - name: prod-dict
+    type: udm.Dictionary
+    entries:
+      ENVIRONMENT: PROD
+      HOST_PORT: "8083"
+  - name: Prod
+    type: udm.Environment
+    members:
+    - Infrastructure/Infrastructure/prod-docker-host
+    dictionaries:
+    - Environments/Environments/prod-dict
+  - name: test-dict
+    type: udm.Dictionary
+    entries:
+      ENVIRONMENT: TEST
+      HOST_PORT: "8082"
+  - name: Dev
+    type: udm.Environment
+    members:
+    - Infrastructure/Infrastructure/dev-docker-host
+    dictionaries:
+    - Environments/Environments/dev-dict

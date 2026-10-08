@@ -1,0 +1,26 @@
+---
+apiVersion: xl-deploy/v1
+kind: Applications
+spec:
+- directory: Applications/Applications
+  children:
+  - name: hello-xld-xlr
+    type: udm.Application
+    lastVersion: 1.0.0
+    children:
+    - name: 1.0.0
+      type: udm.DeploymentPackage
+      orchestrator:
+      - sequential-by-deployed
+      deployables:
+      - name: "hello-xld-xlr-{{ENVIRONMENT}}"
+        type: docker.ContainerSpec
+        containerName: "hello-xld-xlr-{{ENVIRONMENT}}"
+        image: localhost:5000/hello-xld-xlr:1.0.0
+        environment:
+          APP_ENVIRONMENT: "{{ENVIRONMENT}}"
+        portBindings:
+        - name: TCP
+          type: docker.PortSpec
+          hostPort: "{{HOST_PORT}}"
+          containerPort: "8080"

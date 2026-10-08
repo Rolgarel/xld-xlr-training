@@ -1,0 +1,24 @@
+---
+apiVersion: xl-deploy/v1
+kind: Configuration
+spec:
+- directory: Configuration/Configuration
+  children:
+  - name: Registry
+    type: docker.Registry
+    url: http://localhost:5000
+    username: xld
+    password: !value "Configuration_Configuration_Registry_password"
+  - name: github-xld
+    type: git.GitSource
+    url: https://github.com/Rolgarel/xld-xlr-training
+    username: Rolgarel
+    password: !value "Configuration_Configuration_github_xld_password"
+    directories:
+    - name: xld-xlr-training
+      type: git.GitDirectory
+      gitRepositoryPath: xld
+      configurationSourceDir: Configuration/Configuration
+      infrastructureSourceDir: Infrastructure/Infrastructure
+      environmentSourceDir: Environments/Environments
+      applicationSourceDir: Applications/Applications
