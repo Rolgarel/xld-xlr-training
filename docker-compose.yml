@@ -97,7 +97,7 @@ services:
     restart: unless-stopped
 
   release-runner:
-    image: xebialabs/release-runner:26.3
+    image: xebialabs/release-runner:26.3.0
     container_name: release-runner
     hostname: release-runner
 
