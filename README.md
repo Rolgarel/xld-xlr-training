@@ -79,12 +79,11 @@ xld-xlr-project/
 │       ├── Dockerfile
 │       └── certs/
 │
-├── deploy/
-│   └── xld/
-│       ├── applications/
-│       ├── environments/
-│       ├── dictionaries/
-│       └── infrastructure/
+├── xld/
+│   ├── application.yaml
+│   ├── configuration.yaml
+│   ├── environment.yaml
+│   └── infrastructure.yaml
 │
 └── release/
     └── xlr/
@@ -120,8 +119,16 @@ The same application artifact is intended to be promoted across environments:
 hello-xld-xlr:1.0.0
         │
         ├── DEV
+        │    ├── ENVIRONMENT=DEV
+        │    └── HOST_PORT=8081
+        │
         ├── TEST
+        │    ├── ENVIRONMENT=TEST
+        │    └── HOST_PORT=8082
+        │
         └── PROD
+             ├── ENVIRONMENT=PROD
+             └── HOST_PORT=8083
 ```
 
 ## Local Infrastructure
