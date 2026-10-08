@@ -102,6 +102,7 @@ services:
     hostname: docker-proxy
 
     environment:
+      AUTH: 1
       CONTAINERS: 1
       IMAGES: 1
       NETWORKS: 1
