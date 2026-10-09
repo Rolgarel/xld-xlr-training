@@ -105,7 +105,7 @@ services:
       RELEASE_RUNNER_RELEASE_URL: http://xlr:5516
       RELEASE_RUNNER_TOKEN: ${RELEASE_RUNNER_TOKEN}
       RELEASE_RUNNER_PROFILE: docker
-      RELEASE_RUNNER_DOCKER_DOCKER_HOST: unix:///var/run/docker.sock
+      RELEASE_RUNNER_DOCKER_DOCKER_HOST: "tcp://docker-proxy:2375"
       RELEASE_RUNNER_DOCKER_RUN_ON_SAME_NETWORK: "true"
     
     volumes:
