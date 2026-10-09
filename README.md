@@ -39,15 +39,17 @@ Jenkins CI
 
 - Maven — application testing and version management
 
-- Docker — application image build
-
 - Registry — local Docker image storage
 
 - XLR — orchestrates releases and promotions
 
 - XLD — executes application deployments
 
-- Docker — provides the local infrastructure
+- Release Runner — executes tasks delegated by XLR
+
+- Docker Socket Proxy — provides filtered access to the Docker API
+
+- Docker Engine — runs containers and deployment targets
 
 ## Repository Structure
 ```text
@@ -159,8 +161,8 @@ Docker Compose provides the local platform:
 │  │   Registry   │       │     XLR      │                      │
 │  │    :5000     │       │    :5516     │                      │
 │  └──────────────┘       └──────┬───────┘                      │
-│                                 │                             │
-│                                 ▼                             │
+│                                │                              │
+│                                ▼                              │
 │                         ┌──────────────┐                      │
 │                         │     XLD      │                      │
 │                         │    :4516     │                      │
@@ -179,6 +181,8 @@ All services are connected to the same Docker bridge network:
 ```text
 xld-xlr
 ```
+
+Jenkins, XLD, XLR and Release Runner mount the Docker socket directly. The Docker Socket Proxy is also available on the network but is not currently configured as the Docker endpoint for these services.
 
 XLD and XLR are provided by their respective Digital.ai Docker images.
 
@@ -284,7 +288,27 @@ XLD           http://localhost:4516
 XLR           http://localhost:5516
 ```
 
+Release Runner and Docker Socket Proxy do not publish host ports and are intended for internal communication within the Docker network.
+
 Application endpoints are exposed only when an application instance is deployed by XLD.
+
+## Environment Configuration
+
+Create a local environment file from the provided example:
+
+```bash
+cp .env.example .env
+```
+
+Configure the following variables:
+
+- XLD_ADMIN_PASSWORD
+- XLR_ADMIN_PASSWORD
+- RELEASE_RUNNER_TOKEN
+
+Ensure that the Release Runner token is valid for the XLR instance.
+
+Do not commit .env or expose credentials in version control.
 
 ## Start the Project
 
