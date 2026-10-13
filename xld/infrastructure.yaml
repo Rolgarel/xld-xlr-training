@@ -4,7 +4,7 @@ kind: Infrastructure
 spec:
 - directory: Infrastructure/Infrastructure
   children:
-  - name: test-docker-host
+  - name: dev-docker-host
     type: docker.Engine
     dockerHost: http://docker-proxy:2375
     registries:
@@ -14,7 +14,7 @@ spec:
     dockerHost: http://docker-proxy:2375
     registries:
     - Configuration/Configuration/Registry
-  - name: dev-docker-host
+  - name: test-docker-host
     type: docker.Engine
     dockerHost: http://docker-proxy:2375
     registries:

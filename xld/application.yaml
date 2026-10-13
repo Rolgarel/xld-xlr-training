@@ -19,6 +19,7 @@ spec:
         image: localhost:5000/hello-xld-xlr:1.0.0
         environment:
           APP_ENVIRONMENT: "{{ENVIRONMENT}}"
+        memoryLimit: 256m
         portBindings:
         - name: TCP
           type: docker.PortSpec
