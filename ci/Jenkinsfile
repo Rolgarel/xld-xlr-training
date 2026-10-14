@@ -4,7 +4,7 @@ pipeline {
 
     environment {
         REGISTRY = 'localhost:5000'
-        XLR_URL = 'http://localhost:5516'
+        XLR_URL = 'http://xlr:5516'
         IMAGE_NAME = 'hello-xld-xlr'
     }
 
