@@ -4,6 +4,7 @@ pipeline {
 
     environment {
         REGISTRY = 'localhost:5000'
+        XLR_URL = 'http://localhost:5516'
         IMAGE_NAME = 'hello-xld-xlr'
     }
 
@@ -55,6 +56,47 @@ pipeline {
         stage('Docker Push') {
             steps {
                 sh 'docker push ${IMAGE}'
+            }
+        }
+
+        stage('Release on XLR') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'xlr-credentials',
+                        usernameVariable: 'XLR_USER',
+                        passwordVariable: 'XLR_PASSWORD'
+                    )
+                ]) {
+                    script {
+                        def payload = [
+                            releaseTitle: "Hello-XLD-XLR Release",
+                            releaseVariables: [
+                                app_version: env.APP_VERSION
+                            ]
+                        ]
+
+                        writeFile(
+                            file: 'xlr-payload.json',
+                            text: groovy.json.JsonOutput.toJson(payload)
+                        )
+
+                        withEnv([
+                            "XLR_TEMPLATE_ID=templates/hello-xld-xlr-release"
+                        ]) {
+                            sh '''
+                                set +x
+
+                                curl --fail --silent --show-error \
+                                --user "$XLR_USER:$XLR_PASSWORD" \
+                                --header "Content-Type: application/json" \
+                                --request POST \
+                                --data-binary @xlr-payload.json \
+                                "$XLR_URL/api/v1/templates/$XLR_TEMPLATE_ID/start"
+                            '''
+                        }
+                    }
+                }
             }
         }
 
