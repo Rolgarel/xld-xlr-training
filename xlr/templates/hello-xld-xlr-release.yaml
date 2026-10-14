@@ -1,0 +1,291 @@
+---
+apiVersion: xl-release/v1
+kind: Templates
+metadata:
+  home: templates
+spec:
+- template: hello-xld-xlr-release
+  scheduledStartDate: 2026-10-14T07:00:00Z
+  phases:
+  - phase: Create app package
+    tasks:
+    - name: Create package
+      type: xld.CreateCI
+      server: xld-local
+      ciID: "Applications/Applications/hello-xld-xlr/${app_version}"
+      ciType: udm.DeploymentPackage
+      xmlDescriptor: |-
+        <orchestrator>
+          <value>sequential-by-deployed</value>
+        </orchestrator>
+        <dependencyResolution>LATEST</dependencyResolution>
+        <undeployDependencies>false</undeployDependencies>
+      owner: admin
+    - name: Create deployable
+      type: xld.CreateCI
+      server: xld-local
+      ciID: "Applications/Applications/hello-xld-xlr/${app_version}/hello-xld-xlr-{{ENVIRONMENT}}"
+      ciType: docker.ContainerSpec
+      xmlDescriptor: |-
+        <containerName>hello-xld-xlr-{{ENVIRONMENT}}</containerName>
+        <image>localhost:5000/hello-xld-xlr:${app_version}</image>
+        <environment>
+          <entry key="APP_ENVIRONMENT">{{ENVIRONMENT}}</entry>
+        </environment>
+        <memoryLimit>256m</memoryLimit>
+        <networks>
+          <value>xld-xlr</value>
+        </networks>
+      owner: admin
+    - name: Create port spec
+      type: xld.CreateCI
+      server: xld-local
+      ciID: "Applications/Applications/hello-xld-xlr/${app_version}/hello-xld-xlr-{{ENVIRONMENT}}/TCP"
+      ciType: docker.PortSpec
+      xmlDescriptor: |-
+        <hostPort>{{HOST_PORT}}</hostPort>
+        <containerPort>8080</containerPort>
+      owner: admin
+    - name: Package validation
+      type: xlrelease.GateTask
+      conditions:
+      - name: Package validation
+        type: xlrelease.GateCondition
+      - name: Deployable validation
+        type: xlrelease.GateCondition
+      - name: Port spec validation
+        type: xlrelease.GateCondition
+    color: "#3d6c9e"
+  - phase: Deploy on DEV
+    tasks:
+    - name: Deploy on DEV
+      type: xldeploy.Deploy
+      server: xld-local
+      deploymentApplication: Applications/Applications/hello-xld-xlr
+      deploymentPackage: "Applications/Applications/hello-xld-xlr/${app_version}"
+      deploymentEnvironment: Environments/Environments/Dev
+      numberOfContinueRetrials: 0
+      pollingInterval: 10
+      numberOfPollingTrials: 0
+      displayStepLogs: true
+      connectionRetries: 10
+      owner: admin
+      variableMapping:
+        pythonScript.deploymentVersion: "${app_version}"
+    - name: Health check on DEV
+      type: webhook.JsonWebhook
+      URL: http://hello-xld-xlr-DEV:8080/health
+      jsonPathExpression: status
+      owner: admin
+    - name: Smoke test on DEV
+      type: webhook.JsonWebhook
+      URL: http://hello-xld-xlr-DEV:8080/api/info
+      jsonPathExpression: application
+      jsonPathExpression2: environment
+      jsonPathExpression3: version
+      owner: admin
+    - name: Dev validation
+      type: xlrelease.GateTask
+      owner: admin
+      conditions:
+      - name: Health check
+        type: xlrelease.GateCondition
+      - name: Smoke test
+        type: xlrelease.GateCondition
+    color: "#3d6c9e"
+  - phase: Deploy on TEST
+    tasks:
+    - name: Deploy on TEST
+      type: xldeploy.Deploy
+      server: xld-local
+      deploymentApplication: Applications/Applications/hello-xld-xlr
+      deploymentPackage: "Applications/Applications/hello-xld-xlr/${app_version}"
+      deploymentEnvironment: Environments/Environments/Test
+      numberOfContinueRetrials: 0
+      pollingInterval: 10
+      numberOfPollingTrials: 0
+      displayStepLogs: true
+      connectionRetries: 10
+      owner: admin
+      variableMapping:
+        pythonScript.deploymentVersion: "${app_version}"
+    - name: Health check on TEST
+      type: webhook.JsonWebhook
+      URL: http://hello-xld-xlr-TEST:8080/health
+      jsonPathExpression: status
+      owner: admin
+    - name: Smoke test on TEST
+      type: webhook.JsonWebhook
+      URL: http://hello-xld-xlr-TEST:8080/api/info
+      jsonPathExpression: application
+      jsonPathExpression2: environment
+      jsonPathExpression3: version
+      owner: admin
+    - name: QA validation
+      type: xlrelease.GateTask
+      owner: admin
+      conditions:
+      - name: Health check
+        type: xlrelease.GateCondition
+      - name: Smoke test
+        type: xlrelease.GateCondition
+    color: "#3d6c9e"
+  - phase: Deploy on PROD
+    tasks:
+    - name: Final validation
+      type: xlrelease.GateTask
+      owner: admin
+    - name: Deploy on PROD
+      type: xldeploy.Deploy
+      server: xld-local
+      deploymentApplication: Applications/Applications/hello-xld-xlr
+      deploymentPackage: "Applications/Applications/hello-xld-xlr/${app_version}"
+      deploymentEnvironment: Environments/Environments/Prod
+      numberOfContinueRetrials: 0
+      pollingInterval: 10
+      numberOfPollingTrials: 0
+      displayStepLogs: true
+      connectionRetries: 10
+      owner: admin
+      variableMapping:
+        pythonScript.deploymentVersion: "${app_version}"
+    - name: Health check on PROD
+      type: webhook.JsonWebhook
+      URL: http://hello-xld-xlr-PROD:8080/health
+      jsonPathExpression: status
+      owner: admin
+    - name: Smoke test on PROD
+      type: webhook.JsonWebhook
+      URL: http://hello-xld-xlr-PROD:8080/api/info
+      jsonPathExpression: application
+      jsonPathExpression2: environment
+      jsonPathExpression3: version
+      owner: admin
+    color: "#3d6c9e"
+  - phase: Clean up
+    tasks:
+    - name: Manual validation
+      type: xlrelease.GateTask
+      owner: admin
+    - name: Undeploy on DEV
+      type: xldeploy.Undeploy
+      server: xld-local
+      deployedApplication: Environments/Environments/Dev/hello-xld-xlr
+      numberOfContinueRetrials: 0
+      pollingInterval: 10
+      numberOfPollingTrials: 0
+      displayStepLogs: true
+      connectionRetries: 10
+      owner: admin
+    - name: Undeploy on TEST
+      type: xldeploy.Undeploy
+      server: xld-local
+      deployedApplication: Environments/Environments/Test/hello-xld-xlr
+      numberOfContinueRetrials: 0
+      pollingInterval: 10
+      numberOfPollingTrials: 0
+      displayStepLogs: true
+      connectionRetries: 10
+      owner: admin
+    - name: Undeploy on PROD
+      type: xldeploy.Undeploy
+      server: xld-local
+      deployedApplication: Environments/Environments/Prod/hello-xld-xlr
+      numberOfContinueRetrials: 0
+      pollingInterval: 10
+      numberOfPollingTrials: 0
+      displayStepLogs: true
+      connectionRetries: 10
+      owner: admin
+    color: "#3d6c9e"
+  variables:
+  - type: xlrelease.StringVariable
+    key: app_version
+    value: 1.0.0
+  riskProfile: Default risk profile
+  author: admin
+---
+apiVersion: xl-release/v1
+kind: Permissions
+metadata:
+  home: templates
+spec:
+- directory: "."
+  teams:
+  - name: Template Owner
+    users:
+    - admin
+    permissions:
+    - app_pipelines#view
+    - folder#view
+    - template#create_release
+    - template#create_release_other_folder
+    - template#edit
+    - template#edit_failure_handler
+    - template#edit_precondition
+    - template#edit_security
+    - template#edit_triggers
+    - template#lock_task
+    - template#view
+    - trigger#view_trigger
+  - name: Release Admin
+    users:
+    - admin
+    permissions:
+    - app_pipelines#view
+    - folder#view
+    - release#abort
+    - release#advance_task_transition
+    - release#edit
+    - release#edit_blackout
+    - release#edit_failure_handler
+    - release#edit_precondition
+    - release#edit_security
+    - release#edit_task
+    - release#edit_task_attachments
+    - release#edit_task_configuration_facet
+    - release#edit_task_dates
+    - release#edit_task_description
+    - release#edit_task_flag
+    - release#edit_task_input_output_properties
+    - release#edit_task_script
+    - release#edit_task_tags
+    - release#lock_task
+    - release#reassign_lock_task
+    - release#reassign_task
+    - release#restart_phase
+    - release#start
+    - release#task_transition
+    - release#view
+    - trigger#edit_trigger
+    - trigger#view_trigger
+    - workflow#abort_execution
+    - workflow#start_execution
+    - workflow#view_execution
+  - name: Folder Owner
+    users:
+    - admin
+    permissions:
+    - app_pipelines#edit
+    - app_pipelines#view
+    - dashboard#edit
+    - dashboard#view
+    - delivery#edit
+    - delivery#edit_tracked_item
+    - delivery#view
+    - delivery_pattern#edit
+    - delivery_pattern#view
+    - folder#apply_changes
+    - folder#edit
+    - folder#edit_configuration
+    - folder#edit_notifications
+    - folder#edit_security
+    - folder#edit_variables
+    - folder#edit_versions
+    - folder#generate_configuration
+    - folder#view
+    - folder#view_configuration
+    - folder#view_security
+    - folder#view_versions
+    - group#edit
+    - group#view
