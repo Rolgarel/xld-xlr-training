@@ -82,7 +82,7 @@ pipeline {
                         )
 
                         withEnv([
-                            "XLR_TEMPLATE_ID=templates/hello-xld-xlr-release"
+                            "XLR_TEMPLATE_ID=Release034f26f5d3c149f1876c4966d63467ff"
                         ]) {
                             sh '''
                                 set +x
